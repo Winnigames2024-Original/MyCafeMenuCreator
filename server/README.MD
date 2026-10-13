@@ -22,7 +22,6 @@ Deployment guide for the `cafe-bot` server-side application on **Debian / Linux*
 # [EN] Update packages and install system dependencies in Debian/Linux
 # [RU] Обновление пакетов и установка зависимостей в Debian/Linux
 sudo apt update && sudo apt install -y curl git ufw
-curl -fsSL https://nodesource.com | sudo -E bash -
 sudo apt install -y nodejs
 sudo npm install -g pm2
 
