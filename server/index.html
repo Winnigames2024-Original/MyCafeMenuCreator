@@ -2,21 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>README — My Cafe Menu Creator</title>
+    <title>README Viewer</title>
 
     <!-- 1. Конвертер Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- 2. Подсветка синтаксиса (Prism) + Кнопка Copy -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    <!-- 2. Prism.js (Актуальная версия) -->
+    <!-- Базовая тема -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.31.0/themes/prism-tomorrow.min.css">
     
-    <!-- Языки для подсветки -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-bash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-html.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-javascript.min.js"></script>
+    <!-- Ядра и плагины (строго в этом порядке!) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.31.0/prism.min.js"></script>
+    <!-- Плагин копирования (в новых версиях не требует Toolbar) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.31.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Подключаем языки -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.31.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.31.0/components/prism-html.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.31.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.31.0/components/prism-javascript.min.js"></script>
 
     <style>
         :root {
@@ -39,12 +43,9 @@
             padding: 40px 20px;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+        .container { max-width: 900px; margin: 0 auto; }
 
-        /* Заголовки и якоря (GitHub style) */
+        /* Заголовки и якоря */
         h1, h2, h3, h4, h5, h6 {
             color: var(--text);
             font-weight: 600;
@@ -69,15 +70,12 @@
         p { margin-bottom: 16px; }
         ul, ol { margin-bottom: 16px; padding-left: 24px; }
         li { margin-bottom: 8px; }
-
-        /* Таблицы */
         table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
         th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
         th { background: var(--code-bg); color: var(--secondary); }
-
         img { max-width: 100%; border-radius: 6px; }
 
-        /* Блоки кода (Prism style) */
+        /* Стили кода */
         pre {
             background: var(--code-bg);
             border: 1px solid var(--border);
@@ -85,21 +83,23 @@
             padding: 16px;
             overflow-x: auto;
             margin-bottom: 16px;
+            position: relative; /* Важно для позиционирования кнопки */
         }
         code { font-family: var(--font-code); }
-        
-        /* Кнопка Copy (Prism plugin) */
+
+        /* Кнопка Copy (переопределяем стили плагина под темную тему) */
         button.copy-code-button {
             position: absolute;
             top: 14px;
             right: 14px;
-            background: rgba(21, 25, 34, 0.8);
+            background: rgba(21, 25, 34, 0.9);
             border: 1px solid var(--border);
             color: var(--secondary);
             padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
+            z-index: 10;
             transition: all 0.2s;
         }
         button.copy-code-button:hover {
@@ -113,79 +113,74 @@
             padding: 60px;
             color: var(--secondary);
         }
-        .error { color: #ff7b72; background: #2e1e2e; border: 1px solid #ff7b72; border-radius: 6px; }
+        .error { 
+            color: #ff7b72; 
+            background: #2e1e2e; 
+            border: 1px solid #ff7b72; 
+            border-radius: 6px; 
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="content" class="loading">Поиск README... (проверяю разные варианты регистра)</div>
+        <div id="content" class="loading">Поиск README...</div>
     </div>
 
     <script>
-        // Путь к репозиторию (без имени файла)
         const baseUrl = 'https://raw.githubusercontent.com/Winnigames2024-Original/MyCafeMenuCreator/main/server/';
         
-        // 4 варианта регистра, которые мы проверим по очереди
-        const variants = [
-            'README.MD',
-            'README.md',
-            'readme.MD',
-            'readme.md'
-        ];
-
+        // Варианты регистра
+        const variants = ['README.MD', 'README.md', 'readme.MD', 'readme.md'];
         let attempt = 0;
 
         function tryLoadNext() {
             if (attempt >= variants.length) {
-                showError('Не удалось найти README ни в одном из вариантов регистра.');
+                showError('Файл README не найден ни в одном из вариантов написания.');
                 return;
             }
 
             const currentFile = variants[attempt];
             const url = baseUrl + currentFile;
             
-            console.log(`Пробую загрузить: ${url}`);
+            // Обновляем текст загрузки
+            document.getElementById('content').innerText = `Пробую: ${currentFile}...`;
 
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
                         attempt++;
-                        tryLoadNext(); // Пробуем следующий вариант
+                        tryLoadNext();
                         return;
                     }
                     return response.text();
                 })
                 .then(text => {
-                    // Успешно! Обрабатываем Markdown
                     const html = marked.parse(text);
                     document.getElementById('content').innerHTML = html;
 
-                    // Добавляем якоря к заголовкам (как на GitHub)
                     addAnchors();
-
-                    // Включаем подсветку кода и кнопки Copy
-                    Prism.highlightAll();
+                    
+                    // ВАЖНО: Вызываем highlightAll только после вставки HTML
+                    setTimeout(() => {
+                        Prism.highlightAll();
+                    }, 100);
                 })
                 .catch(err => {
+                    console.error(err);
                     attempt++;
                     tryLoadNext();
                 });
         }
 
-        // Функция добавления якорей (значков 🔗)
         function addAnchors() {
             const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
             headings.forEach(heading => {
-                // Создаем ID из текста заголовка
                 const id = heading.innerText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                 heading.id = id;
 
-                // Создаем ссылку
                 const anchor = document.createElement('a');
                 anchor.href = '#' + id;
                 anchor.setAttribute('aria-label', 'Permalink');
-                
-                // SVG иконка ссылки
                 anchor.innerHTML = `
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3.97 3.97a3.75 3.75 0 015.3 0l2.5 2.5a3.75 3.75 0 010 5.3l-2.5 2.5a3.75 3.75 0 01-5.3 0l-2.5-2.5a3.75 3.75 0 010-5.3l2.5-2.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -198,10 +193,9 @@
         function showError(msg) {
             const el = document.getElementById('content');
             el.className = 'error';
-            el.innerHTML = `<strong>Ошибка:</strong> ${msg}<br><br>Проверь, существует ли файл README в папке server/ репозитория.`;
+            el.innerHTML = `<strong>Ошибка:</strong> ${msg}<br><br>Проверь путь к файлу в репозитории.`;
         }
 
-        // Запуск
         tryLoadNext();
     </script>
 </body>
