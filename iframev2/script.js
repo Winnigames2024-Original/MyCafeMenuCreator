@@ -1,27 +1,31 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Получаем текущие параметры из URL
+    // 1. Извлекаем параметры из адресной строки (URL)
     const urlParams = new URLSearchParams(window.location.search);
     
-    const targetUrl = urlParams.get('url'); // Извлекаем 'dsdsd'
-    const viewMode = urlParams.get('view'); // Извлекаем 'true'
-    const rawParameters = urlParams.get('parameters'); // Извлекаем 'nocontrols;disableiframegui;novideo;free'
+    const targetUrl = urlParams.get('url'); // 'https://winnigames2024.ru'
+    const viewMode = urlParams.get('view'); // 'true'
+    const rawParameters = urlParams.get('parameters'); // 'nocontrols;disableiframegui;site;free'
 
     const container = document.getElementById('iframe-container');
     const iframe = document.getElementById('target-iframe');
     const badge = document.getElementById('status-badge');
 
-    // 2. Устанавливаем адрес в iframe, если он передан
+    // Скрываем лоадер, когда фрейм полностью загрузился
+    iframe.addEventListener('load', () => {
+        container.classList.add('loaded');
+    });
+
+    // 2. Валидация и установка URL в iframe
     if (targetUrl) {
-        // Если url не имеет протокола (например, просто текст), здесь можно дополнить логику.
-        // Для примера просто вставляем как есть:
+        // Убеждаемся, что адрес содержит протокол, если нет — добавляем https
         iframe.src = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
     } else {
-        console.warn("Параметр 'url' не найден в адресе.");
+        console.error("Параметр 'url' отсутствует в адресе.");
+        document.getElementById('loader').innerText = "Ошибка: URL не указан";
     }
 
-    // 3. Обрабатываем список дополнительных параметров (разделенных через ';')
+    // 3. Разбор дополнительных параметров через точку с запятой
     if (rawParameters) {
-        // Разделяем строку на массив флагов: ['nocontrols', 'disableiframegui', ...]
         const paramsArray = rawParameters.split(';');
 
         paramsArray.forEach(param => {
@@ -30,26 +34,27 @@ document.addEventListener("DOMContentLoaded", () => {
             switch (cleanParam) {
                 case 'nocontrols':
                 case 'disableiframegui':
-                    // Скрываем панель управления кнопками
+                    // Полностью убираем панели управления iframev2
                     container.classList.add('hide-gui');
                     break;
                     
-                case 'novideo':
-                    // Включаем режим без видео
-                    container.classList.add('no-video');
+                case 'site':
+                    // Включаем режим отображения "Сайт/Приложение" (не видео)
+                    container.classList.add('site-mode');
+                    console.log("Режим: Интерактивный сайт/игра");
                     break;
                     
                 case 'free':
-                    // Меням текст и стиль плашки на "Бесплатно"
+                    // Применяем бесплатный статус
                     container.classList.add('free-mode');
-                    if (badge) badge.innerText = "Бесплатный доступ";
+                    if (badge) badge.innerText = "Бесплатно";
                     break;
             }
         });
     }
 
-    // 4. Обработка флага просмотра (view)
+    // 4. Обработка флага view
     if (viewMode === 'true') {
-        console.log("Включен режим отображения (view=true)");
+        document.title = `Просмотр: ${targetUrl || 'iframev2'}`;
     }
 });
