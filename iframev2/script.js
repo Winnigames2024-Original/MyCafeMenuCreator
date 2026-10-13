@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let isIframeLoaded = false;
 
-    // Устанавливаем ссылку для обхода ошибки (откроется в новой вкладке)
     if (targetUrl) {
         const cleanUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
         iframe.src = cleanUrl;
@@ -23,22 +22,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // Если iframe успешно загрузился
+    // Если iframe смог успешно загрузиться
     iframe.addEventListener('load', () => {
         isIframeLoaded = true;
-        container.classList.add('loaded');
-        errorNotice.classList.add('hidden'); // На всякий случай прячем ошибку
+        // Проверяем, не пустой ли iframe из-за блокировки браузера
+        try {
+            if (iframe.contentWindow.location.href === "about:blank") {
+                // Если браузер заблокировал загрузку, адрес сбросится
+                showError();
+            } else {
+                container.classList.add('loaded');
+                errorNotice.classList.add('hidden');
+            }
+        } catch (e) {
+            // Если сработал Cross-Origin (сайт начал загружаться, но упал по SSL)
+            container.classList.add('loaded');
+            errorNotice.classList.add('hidden');
+        }
     });
 
-    // Умный таймер ожидания загрузки (в обход ограничений браузера на ERR_CERT)
+    // Функция вывода заглушки с кнопкой перехода
+    function showError() {
+        container.classList.add('loaded'); // убираем бесконечный спиннер
+        errorNotice.classList.remove('hidden'); // показываем кнопку помощи
+    }
+
+    // Жесткий таймаут: если за 3 секунды сайт вообще не подал признаков жизни
     setTimeout(() => {
         if (!isIframeLoaded) {
-            // Если за 4 секунды iframe не загрузился, скорее всего сработал ERR_CERT_AUTHORITY_INVALID
-            container.classList.add('loaded'); // убираем бесконечный лоадер
-            errorNotice.classList.remove('hidden'); // показываем кнопку помощи
-            console.warn("Подозрение на ошибку SSL-сертификата (нет ответа от фрейма).");
+            showError();
         }
-    }, 4000); // 4 секунды ожидания
+    }, 3000);
 
     // Разбор параметров
     if (rawParameters) {
