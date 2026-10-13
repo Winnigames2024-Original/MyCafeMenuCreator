@@ -1,36 +1,42 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const targetUrl = urlParams.get('url');
+    const targetUrlParam = urlParams.get('url');
     const viewMode = urlParams.get('view');
     const rawParameters = urlParams.get('parameters');
 
-    // Получаем элементы, но НЕ выбрасываем ошибку, если их нет
+    // Получаем элементы. Если чего-то нет — просто не трогаем, скрипт не падает.
     const container = document.getElementById('iframe-container');
-    const badge = document.getElementById('status-badge');
+    const iframe = document.getElementById('target-iframe');
+    const loader = document.getElementById('loader');
     const errorNotice = document.getElementById('error-notice');
     const bypassLink = document.getElementById('bypass-link');
-    const loader = document.getElementById('loader');
+    const statusBadge = document.getElementById('status-badge');
+    const guiControls = document.getElementById('gui-controls');
 
-    // Если самой кнопки нет — смысла продолжать нет, выходим тихо
-    if (!bypassLink) {
-        console.warn('Элемент #bypass-link не найден. Кнопка перехода не будет создана.');
+    // Если нет самого iframe или кнопки-заглушки — смысла нет
+    if (!iframe || !bypassLink) {
+        console.error('Критические элементы DOM не найдены. Проверьте разметку.');
         return;
     }
 
-    if (!targetUrl) {
-        if (loader) loader.innerText = 'Ошибка: параметр "url" не указан';
-        showError('Не передан параметр url в адресной строке.');
+    if (!targetUrlParam) {
+        if (loader) loader.innerText = 'Ошибка: не указан параметр "url"';
+        if (errorNotice) {
+            errorNotice.classList.remove('hidden');
+            errorNotice.querySelector('h3').innerText = '⚠️ Ошибка конфигурации';
+            errorNotice.querySelector('p').innerText = 'В адресной строке отсутствует параметр ?url=...';
+        }
         return;
     }
 
-    let cleanUrl = targetUrl.trim();
+    let cleanUrl = targetUrlParam.trim();
 
-    // Нормализация URL: добавляем https, если нет протокола
+    // 1. Нормализация URL (добавляем https, если нет протокола)
     if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
         cleanUrl = 'https://' + cleanUrl;
     }
 
-    // Безопасная валидация URL (защита от javascript:, data: и т.д.)
+    // 2. Безопасная валидация (защита от javascript:alert(1) и т.п.)
     try {
         const parsed = new URL(cleanUrl);
         if (!['http:', 'https:'].includes(parsed.protocol)) {
@@ -38,20 +44,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     } catch (e) {
         console.error('Некорректный URL', e);
-        showError('Указан недопустимый адрес сайта. Проверьте параметр url.');
+        if (loader) loader.innerText = 'Ошибка: недопустимый адрес сайта';
+        if (errorNotice) {
+            errorNotice.classList.remove('hidden');
+            const h3 = errorNotice.querySelector('h3');
+            const p = errorNotice.querySelector('p');
+            if (h3) h3.innerText = '⚠️ Неверный адрес';
+            if (p) p.innerText = 'Указанный URL не является корректным веб-адресом.';
+        }
         return;
     }
 
-    // --- ГЛАВНАЯ ЛОГИКА: ПРОСТО КНОПКА ---
-    // Никаких window.open при загрузке, никаких внешних прокси
-    bypassLink.href = cleanUrl;
-    bypassLink.innerText = 'Перейти на сайт';
-    bypassLink.style.display = 'inline-block'; // Показываем кнопку
-
-    if (container) container.classList.add('loaded');
-    if (loader) loader.innerText = 'Нажмите кнопку ниже, чтобы перейти на сайт.';
-
-    // Обработка параметров (nocontrols, site, free)
+    // --- НАСТРОЙКА РЕЖИМОВ (nocontrols, free, site) ---
     if (rawParameters) {
         const paramsArray = rawParameters.split(';');
         paramsArray.forEach(param => {
@@ -59,33 +63,70 @@ document.addEventListener("DOMContentLoaded", () => {
             switch (cleanParam) {
                 case 'nocontrols':
                 case 'disableiframegui':
-                    if (container) container.classList.add('hide-gui');
+                    if (guiControls) guiControls.style.display = 'none';
                     break;
                 case 'site':
                     if (container) container.classList.add('site-mode');
                     break;
                 case 'free':
+                    if (statusBadge) statusBadge.innerText = 'Бесплатно';
                     if (container) container.classList.add('free-mode');
-                    if (badge) badge.innerText = 'Бесплатно';
                     break;
             }
         });
     }
 
-    // Обновление заголовка страницы
+    // Обновляем заголовок страницы, если нужно
     if (viewMode === 'true') {
-        document.title = `Переход: ${cleanUrl}`;
+        document.title = `Просмотр: ${cleanUrl}`;
     }
 
-    // Функция для показа ошибок (не ломает скрипт, если элементов нет)
-    function showError(message) {
-        if (!errorNotice) return; // Тихо выходим, если блока ошибок нет
-        errorNotice.classList.remove('hidden');
-        
-        const h3 = errorNotice.querySelector('h3');
-        const p = errorNotice.querySelector('p');
-        
-        if (h3) h3.innerText = 'Внимание';
-        if (p) p.innerText = message;
+    // --- ГЛАВНАЯ ЛОГИКА: ЗАГРУЗКА IFRAME ---
+    
+    // Сначала показываем лоадер
+    if (loader) loader.style.display = 'block';
+
+    // Назначаем src iframe
+    iframe.src = cleanUrl;
+
+    // Слушаем событие загрузки iframe
+    iframe.onload = () => {
+        if (loader) loader.style.display = 'none'; // Скрываем лоадер при успехе
+        if (container) container.classList.add('loaded');
+        console.log('Iframe успешно загружен');
+    };
+
+    // Слушаем ошибку загрузки iframe (это и есть та самая "блокировка браузером")
+    iframe.onerror = () => {
+        handleIframeError();
+    };
+
+    // Также проверяем, не загрузился ли iframe с ошибкой (иногда onload срабатывает даже при ошибке)
+    // Но самый надежный способ узнать о блокировке CORS/Mixed Content — это именно onerror или анализ содержимого.
+    // Для простоты используем onerror + проверку после загрузки.
+
+    function handleIframeError() {
+        if (loader) loader.style.display = 'none';
+
+        if (errorNotice) {
+            errorNotice.classList.remove('hidden');
+            
+            // Обновляем текст кнопки на понятный
+            if (bypassLink) {
+                bypassLink.href = cleanUrl;
+                bypassLink.innerText = 'Открыть сайт в новой вкладке';
+                bypassLink.target = '_blank';
+                bypassLink.rel = 'noopener noreferrer';
+            }
+
+            // Подсказки для разных случаев можно менять здесь
+            const h3 = errorNotice.querySelector('h3');
+            const p = errorNotice.querySelector('p');
+            if (h3) h3.innerText = '⚠️ Контент заблокирован браузером';
+            if (p) {
+                p.innerText = 'Браузер не позволяет отобразить этот сайт внутри страницы (CORS, Mixed Content или политика безопасности).';
+            }
+        }
+        console.warn('Iframe не смог загрузить контент. Пользователь увидит кнопку перехода.');
     }
 });
