@@ -1,3 +1,3 @@
-# 📂 Открыть папку [`server`](server/)  
+# Открыть папку 📂 [`server`](server/)  
 
 # Open the 📂 [`server`](server/) folder  
