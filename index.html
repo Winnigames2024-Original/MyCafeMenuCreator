@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Server Folder</title>
+  <style>
+    /* Базовые стили в стиле GitHub */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background-color: #0d1117;
+      color: #e6edf3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    /* Контейнер для двух языков */
+    .folder-container {
+      background-color: #161b22;
+      border: 1px border #30363d;
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    /* Строка с кнопкой */
+    .folder-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 16px 0;
+      font-size: 16px;
+    }
+
+    .folder-text {
+      margin: 0;
+      font-weight: 500;
+    }
+
+    /* Кнопка-ссылка (стиль тега кода на GitHub) */
+    .folder-badge {
+      background-color: rgba(110, 118, 129, 0.4);
+      color: #e6edf3;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, SF Pro Text, Menlo, Monaco, Consolas, monospace;
+      font-size: 85%;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .folder-badge:hover {
+      background-color: #21262d;
+      border-color: #8b949e;
+    }
+
+    /* Разделительная линия между языками */
+    hr {
+      border: 0;
+      border-top: 1px solid #30363d;
+      margin: 12px 0;
+    }
+
+    /* Всплывающее уведомление */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      background-color: #238636;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="folder-container">
+    <!-- Русская версия -->
+    <div class="folder-row">
+      <p class="folder-text">Открыть папку</p>
+      <div class="folder-badge" onclick="copyPath('server/')">
+        📂 <code>server/</code>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Английская версия -->
+    <div class="folder-row">
+      <p class="folder-text">Open the folder</p>
+      <div class="folder-badge" onclick="copyPath('server/')">
+        📂 <code>server/</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Элемент уведомления -->
+  <div id="toast" class="toast">Путь скопирован! / Path copied!</div>
+
+  <script>
+    function copyPath(path) {
+      // Копирование текста в буфер обмена
+      navigator.clipboard.writeText(path).then(() => {
+        const toast = document.getElementById('toast');
+        
+        // Показываем уведомление
+        toast.classList.add('show');
+        
+        // Прячем через 2 секунды
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2000);
+      }).catch(err => {
+        console.error('Ошибка копирования: ', err);
+      });
+    }
+  </script>
+
+</body>
+</html>
