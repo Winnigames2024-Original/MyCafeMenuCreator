@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>README — My Cafe Menu Creator</title>
-    <!-- Библиотека для конвертации Markdown в HTML -->
+
+    <!-- 1. Конвертер Markdown → HTML -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- 2. Подсветка синтаксиса (Prism) + кнопка Copy -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    
+    <!-- Подключаем языки (чтобы работали bash, html, css, js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-html.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-javascript.min.js"></script>
 
     <style>
         :root {
@@ -26,22 +38,14 @@
             padding: 40px 20px;
         }
 
-        /* Контейнер как на GitHub */
         .markdown-container {
             max-width: 900px;
             margin: 0 auto;
         }
 
-        /* Стили для markdown-body (как на GitHub) */
-        .markdown-body {
-            color: var(--color-text-default);
-        }
-        .markdown-body h1,
-        .markdown-body h2,
-        .markdown-body h3,
-        .markdown-body h4,
-        .markdown-body h5,
-        .markdown-body h6 {
+        /* Стили заголовков и якорей (как на GitHub) */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3,
+        .markdown-body h4, .markdown-body h5, .markdown-body h6 {
             color: var(--color-text-default);
             font-weight: 600;
             margin-top: 24px;
@@ -49,13 +53,8 @@
             position: relative;
         }
 
-        /* Якорь-ссылка справа от заголовка (как в твоём примере) */
-        .markdown-body h1 a,
-        .markdown-body h2 a,
-        .markdown-body h3 a,
-        .markdown-body h4 a,
-        .markdown-body h5 a,
-        .markdown-body h6 a {
+        .markdown-body h1 a, .markdown-body h2 a, .markdown-body h3 a,
+        .markdown-body h4 a, .markdown-body h5 a, .markdown-body h6 a {
             opacity: 0;
             text-decoration: none;
             color: var(--color-text-secondary);
@@ -63,12 +62,8 @@
             transition: opacity 0.2s;
         }
 
-        .markdown-body h1:hover a,
-        .markdown-body h2:hover a,
-        .markdown-body h3:hover a,
-        .markdown-body h4:hover a,
-        .markdown-body h5:hover a,
-        .markdown-body h6:hover a {
+        .markdown-body h1:hover a, .markdown-body h2:hover a, .markdown-body h3:hover a,
+        .markdown-body h4:hover a, .markdown-body h5:hover a, .markdown-body h6:hover a {
             opacity: 1;
         }
 
@@ -77,84 +72,21 @@
             text-decoration: underline;
         }
 
-        .markdown-body p {
-            margin-bottom: 16px;
-        }
-
-        .markdown-body ul,
-        .markdown-body ol {
-            margin-bottom: 16px;
-            padding-left: 24px;
-        }
-
-        .markdown-body li {
-            margin-bottom: 8px;
-        }
-
-        /* Блоки кода (как на GitHub) */
-        .markdown-body pre {
-            background: #0d1117;
-            border: 1px solid var(--color-border);
-            border-radius: 6px;
-            padding: 16px;
-            overflow-x: auto;
-            margin-bottom: 16px;
-        }
-
-        .markdown-body code {
-            font-family: var(--font-code);
-            background: #0d1117;
-            color: #c9d1d9;
-            padding: 0.2em 0.4em;
-            border-radius: 6px;
-        }
-
-        .markdown-body pre code {
-            background: transparent;
-            padding: 0;
-            color: inherit;
-        }
+        .markdown-body p { margin-bottom: 16px; }
+        .markdown-body ul, .markdown-body ol { margin-bottom: 16px; padding-left: 24px; }
+        .markdown-body li { margin-bottom: 8px; }
 
         /* Таблицы */
-        .markdown-body table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 16px;
-        }
-
-        .markdown-body th,
-        .markdown-body td {
-            border: 1px solid var(--color-border);
-            padding: 8px 12px;
-            text-align: left;
-        }
-
-        .markdown-body th {
-            background: #0d1117;
-            color: var(--color-text-secondary);
-        }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .markdown-body th, .markdown-body td { border: 1px solid var(--color-border); padding: 8px 12px; text-align: left; }
+        .markdown-body th { background: #0d1117; color: var(--color-text-secondary); }
 
         /* Картинки */
-        .markdown-body img {
-            max-width: 100%;
-            border-radius: 6px;
-        }
+        .markdown-body img { max-width: 100%; border-radius: 6px; }
 
-        /* Блок загрузки */
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: var(--color-text-secondary);
-        }
-
-        /* Блок ошибки */
-        .error {
-            padding: 20px;
-            background: #2e1e2e;
-            color: #ff7b72;
-            border-radius: 6px;
-            border: 1px solid #ff7b72;
-        }
+        /* Блок загрузки и ошибки */
+        .loading { text-align: center; padding: 60px; color: var(--color-text-secondary); }
+        .error { padding: 20px; background: #2e1e2e; color: #ff7b72; border-radius: 6px; border: 1px solid #ff7b72; }
     </style>
 </head>
 <body>
@@ -163,8 +95,7 @@
     </div>
 
     <script>
-        // Ссылка на сырой README.md
-        const mdUrl = 'https://raw.githubusercontent.com/Winnigames2024-Original/MyCafeMenuCreator/main/server/README.MD';
+        const mdUrl = 'https://raw.githubusercontent.com/Winnigames2024-Original/MyCafeMenuCreator/main/server/README.md';
 
         fetch(mdUrl)
             .then(response => {
@@ -174,22 +105,16 @@
             .then(markdownText => {
                 // Конвертируем Markdown в HTML
                 const html = marked.parse(markdownText);
-                
-                // Вставляем в контейнер
                 document.getElementById('content').innerHTML = html;
 
-                // Добавляем якоря-ссылки к заголовкам (как на GitHub)
+                // Добавляем якоря-ссылки к заголовкам
                 const headings = document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6');
                 headings.forEach(heading => {
                     const id = heading.innerText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                     heading.id = id;
-
-                    // Создаём ссылку-якорь
                     const anchor = document.createElement('a');
                     anchor.href = '#' + id;
                     anchor.setAttribute('aria-label', 'Permalink');
-                    
-                    // SVG иконка ссылки (Octicon link)
                     anchor.innerHTML = `
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M3.97 3.97a3.75 3.75 0 015.3 0l2.5 2.5a3.75 3.75 0 010 5.3l-2.5 2.5a3.75 3.75 0 01-5.3 0l-2.5-2.5a3.75 3.75 0 010-5.3l2.5-2.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -197,6 +122,9 @@
                     `;
                     heading.appendChild(anchor);
                 });
+
+                // Инициализируем подсветку и кнопку Copy
+                Prism.highlightAll();
             })
             .catch(err => {
                 const content = document.getElementById('content');
