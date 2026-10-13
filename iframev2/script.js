@@ -14,42 +14,47 @@ document.addEventListener("DOMContentLoaded", () => {
     let isIframeLoaded = false;
 
     if (targetUrl) {
-        // Очищаем пробелы и принудительно переводим в корректный вид
         targetUrl = targetUrl.trim();
         
-        // Устанавливаем прямую ссылку на кнопку "Разрешить доступ" на всякий случай
+        // Кнопка «Разрешить доступ» на всякий случай ведет на прямую ссылку
         bypassLink.href = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
 
-        // Обход блокировок (Mixed Content / X-Frame-Options) через публичный анонимайзер-прокси
-        // Этот прокси принимает HTTPS запрос от GitHub Pages и отображает ваш HTTP/HTTPS сайт без блокировок браузера
-        const proxyUrl = `https://corsproxy.io{encodeURIComponent(targetUrl)}`;
+        // === РЕШЕНИЕ БЕЗ CLOUDFLARE ===
+        // Если сайт передается как http:// или просто без протокола, 
+        // мы пропускаем его через бесплатный публичный HTTPS-прокси corsproxy.io.
+        // Он берет контент вашего сайта, заворачивает в HTTPS и срезает заголовки блокировки iframe.
         
-        iframe.src = proxyUrl;
+        let cleanUrl = targetUrl;
+        if (!cleanUrl.startsWith('http')) {
+            cleanUrl = `https://${cleanUrl}`;
+        }
+
+        // Подключаем прокси-обходчик
+        const wrappedUrl = `https://corsproxy.io{encodeURIComponent(cleanUrl)}`;
+        
+        console.log("Загрузка через HTTPS-прокси:", wrappedUrl);
+        iframe.src = wrappedUrl;
     } else {
         document.getElementById('loader').innerText = "Ошибка: URL не указан";
         return;
     }
 
-    // Если iframe успешно обработал адрес
+    // Если iframe успешно загрузился через прокси
     iframe.addEventListener('load', () => {
         isIframeLoaded = true;
         container.classList.add('loaded');
         errorNotice.classList.add('hidden'); 
     });
 
-    // Функция показа ошибки, если прокси тоже не справился за 4 секунды
-    function showError() {
-        container.classList.add('loaded');
-        errorNotice.classList.remove('hidden'); 
-    }
-
+    // Запасной таймаут: если прокси не ответил за 4 секунды, покажем кнопку ручного перехода
     setTimeout(() => {
         if (!isIframeLoaded) {
-            showError();
+            container.classList.add('loaded');
+            errorNotice.classList.remove('hidden'); 
         }
     }, 4000);
 
-    // Разбор параметров (оставляем без изменений)
+    // Разбор остальных ваших параметров (site, free, nocontrols)
     if (rawParameters) {
         const paramsArray = rawParameters.split(';');
         paramsArray.forEach(param => {
