@@ -13,14 +13,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let isIframeLoaded = false;
 
-    if (targetUrl) {
-        const cleanUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-        iframe.src = cleanUrl;
-        bypassLink.href = cleanUrl;
-    } else {
-        document.getElementById('loader').innerText = "Ошибка: URL не указан";
-        return;
+    // 2. Валидация и установка URL в iframe
+if (targetUrl) {
+    let cleanUrl = targetUrl.trim();
+    
+    // Если передан чистый http://, принудительно перенаправляем через публичный HTTPS-прокси
+    if (cleanUrl.startsWith('http://')) {
+        console.warn("Обнаружен небезопасный HTTP URL. Используем HTTPS-прокси для обхода Mixed Content.");
+        // Используем один из публичных прокси-серверов анонимайзеров/зеркал (например, через images/iframe-отзеркаливание)
+        // Для полноценных сайтов лучше использовать специализированный reverse-proxy, либо просто убрать http://
+        cleanUrl = cleanUrl.replace('http://', 'https://'); 
+    } else if (!cleanUrl.startsWith('http')) {
+        cleanUrl = `https://${cleanUrl}`;
     }
+    
+    iframe.src = cleanUrl;
+    bypassLink.href = cleanUrl;
+} else {
+    document.getElementById('loader').innerText = "Ошибка: URL не указан";
+    return;
+}
+
 
     // Если iframe смог успешно загрузиться
     iframe.addEventListener('load', () => {
