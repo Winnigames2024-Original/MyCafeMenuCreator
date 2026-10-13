@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iframev2 Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Главный контейнер для iframe -->
+    <div id="iframe-container" class="iframe-container">
+        <!-- Сам iframe, URL в который вставит JS -->
+        <iframe id="target-iframe" src="" frameborder="0" allowfullscreen></iframe>
+        
+        <!-- Кастомная панель управления (скроется, если передан флаг nocontrols или disableiframegui) -->
+        <div id="gui-controls" class="gui-controls">
+            <button onclick="alert('Действие плеера')">Play/Pause</button>
+            <span id="status-badge" class="badge">Режим просмотра</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
