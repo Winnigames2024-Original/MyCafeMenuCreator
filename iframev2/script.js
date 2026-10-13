@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    const targetUrl = urlParams.get('url'); 
+    let targetUrl = urlParams.get('url'); 
     const viewMode = urlParams.get('view'); 
     const rawParameters = urlParams.get('parameters'); 
 
@@ -13,61 +13,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let isIframeLoaded = false;
 
-    // 2. Валидация и установка URL в iframe
-if (targetUrl) {
-    let cleanUrl = targetUrl.trim();
-    
-    // Если передан чистый http://, принудительно перенаправляем через публичный HTTPS-прокси
-    if (cleanUrl.startsWith('http://')) {
-        console.warn("Обнаружен небезопасный HTTP URL. Используем HTTPS-прокси для обхода Mixed Content.");
-        // Используем один из публичных прокси-серверов анонимайзеров/зеркал (например, через images/iframe-отзеркаливание)
-        // Для полноценных сайтов лучше использовать специализированный reverse-proxy, либо просто убрать http://
-        cleanUrl = cleanUrl.replace('http://', 'https://'); 
-    } else if (!cleanUrl.startsWith('http')) {
-        cleanUrl = `https://${cleanUrl}`;
+    if (targetUrl) {
+        // Очищаем пробелы и принудительно переводим в корректный вид
+        targetUrl = targetUrl.trim();
+        
+        // Устанавливаем прямую ссылку на кнопку "Разрешить доступ" на всякий случай
+        bypassLink.href = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+
+        // Обход блокировок (Mixed Content / X-Frame-Options) через публичный анонимайзер-прокси
+        // Этот прокси принимает HTTPS запрос от GitHub Pages и отображает ваш HTTP/HTTPS сайт без блокировок браузера
+        const proxyUrl = `https://corsproxy.io{encodeURIComponent(targetUrl)}`;
+        
+        iframe.src = proxyUrl;
+    } else {
+        document.getElementById('loader').innerText = "Ошибка: URL не указан";
+        return;
     }
-    
-    iframe.src = cleanUrl;
-    bypassLink.href = cleanUrl;
-} else {
-    document.getElementById('loader').innerText = "Ошибка: URL не указан";
-    return;
-}
 
-
-    // Если iframe смог успешно загрузиться
+    // Если iframe успешно обработал адрес
     iframe.addEventListener('load', () => {
         isIframeLoaded = true;
-        // Проверяем, не пустой ли iframe из-за блокировки браузера
-        try {
-            if (iframe.contentWindow.location.href === "about:blank") {
-                // Если браузер заблокировал загрузку, адрес сбросится
-                showError();
-            } else {
-                container.classList.add('loaded');
-                errorNotice.classList.add('hidden');
-            }
-        } catch (e) {
-            // Если сработал Cross-Origin (сайт начал загружаться, но упал по SSL)
-            container.classList.add('loaded');
-            errorNotice.classList.add('hidden');
-        }
+        container.classList.add('loaded');
+        errorNotice.classList.add('hidden'); 
     });
 
-    // Функция вывода заглушки с кнопкой перехода
+    // Функция показа ошибки, если прокси тоже не справился за 4 секунды
     function showError() {
-        container.classList.add('loaded'); // убираем бесконечный спиннер
-        errorNotice.classList.remove('hidden'); // показываем кнопку помощи
+        container.classList.add('loaded');
+        errorNotice.classList.remove('hidden'); 
     }
 
-    // Жесткий таймаут: если за 3 секунды сайт вообще не подал признаков жизни
     setTimeout(() => {
         if (!isIframeLoaded) {
             showError();
         }
-    }, 3000);
+    }, 4000);
 
-    // Разбор параметров
+    // Разбор параметров (оставляем без изменений)
     if (rawParameters) {
         const paramsArray = rawParameters.split(';');
         paramsArray.forEach(param => {
