@@ -8,14 +8,18 @@
 </head>
 <body>
 
-    <!-- Главный контейнер для iframe -->
+    <!-- Главный контейнер -->
     <div id="iframe-container" class="iframe-container">
-        <!-- Сам iframe, URL в который вставит JS -->
-        <iframe id="target-iframe" src="" frameborder="0" allowfullscreen></iframe>
         
-        <!-- Кастомная панель управления (скроется, если передан флаг nocontrols или disableiframegui) -->
+        <!-- Лоадер/Заставка на время загрузки сайта -->
+        <div id="loader" class="loader">Загрузка контента...</div>
+
+        <!-- Сам iframe для отображения сайта/приложения -->
+        <iframe id="target-iframe" src="" frameborder="0" allowfullscreen allow="geolocation; microphone; camera; midi; encrypted-media;"></iframe>
+        
+        <!-- Кастомный GUI-интерфейс (скроется при nocontrols или disableiframegui) -->
         <div id="gui-controls" class="gui-controls">
-            <button onclick="alert('Действие плеера')">Play/Pause</button>
+            <button onclick="location.reload()">Обновить</button>
             <span id="status-badge" class="badge">Режим просмотра</span>
         </div>
     </div>
