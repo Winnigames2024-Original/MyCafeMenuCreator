@@ -99,7 +99,7 @@
     <!-- Русская версия -->
     <div class="folder-row">
       <p class="folder-text">Откройте простой файл server.js и следуйте инструкциям</p>
-      <div class="folder-badge" onclick="copyPath('server/')">
+      <div class="folder-badge" onclick="openPath('server/')">
         📂 <code>server</code>
       </div>
     </div>
@@ -109,33 +109,29 @@
     <!-- Английская версия -->
     <div class="folder-row">
       <p class="folder-text">Open simple server.js and instruction</p>
-      <div class="folder-badge" onclick="copyPath('server/')">
+      <div class="folder-badge" onclick="openPath('server/')">
         📂 <code>server</code>
       </div>
     </div>
   </div>
 
   <!-- Элемент уведомления -->
-  <div id="toast" class="toast">Путь скопирован! / Path copied!</div>
+  <div id="toast" class="toast">Ссылка Открыта! / Link Opened!</div>
 
   <script>
-    function copyPath(path) {
-      // Копирование текста в буфер обмена
-      navigator.clipboard.writeText(path).then(() => {
-        const toast = document.getElementById('toast');
-        
-        // Показываем уведомление
-        toast.classList.add('show');
-        
-        // Прячем через 2 секунды
-        setTimeout(() => {
-          toast.classList.remove('show');
-        }, 2000);
-      }).catch(err => {
-        console.error('Ошибка копирования: ', err);
-      });
-    }
+  function openPath(path) {
+      const toast = document.getElementById('toast');
+    
+      if (toast) {
+          // Сначала показываем уведомление
+          toast.classList.add('show');
+      }
+      
+      // Делаем задержку в 2 секунды перед переходом по ссылке
+      setTimeout(() => {
+          window.location.href = path;
+      }, 2000);
+  }
   </script>
-
 </body>
 </html>
