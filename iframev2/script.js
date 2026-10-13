@@ -1,51 +1,59 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Извлекаем параметры из адресной строки (URL)
     const urlParams = new URLSearchParams(window.location.search);
     
-    const targetUrl = urlParams.get('url'); // 'https://winnigames2024.ru'
-    const viewMode = urlParams.get('view'); // 'true'
-    const rawParameters = urlParams.get('parameters'); // 'nocontrols;disableiframegui;site;free'
+    const targetUrl = urlParams.get('url'); 
+    const viewMode = urlParams.get('view'); 
+    const rawParameters = urlParams.get('parameters'); 
 
     const container = document.getElementById('iframe-container');
     const iframe = document.getElementById('target-iframe');
     const badge = document.getElementById('status-badge');
+    const errorNotice = document.getElementById('error-notice');
+    const bypassLink = document.getElementById('bypass-link');
 
-    // Скрываем лоадер, когда фрейм полностью загрузился
-    iframe.addEventListener('load', () => {
-        container.classList.add('loaded');
-    });
+    let isIframeLoaded = false;
 
-    // 2. Валидация и установка URL в iframe
+    // Устанавливаем ссылку для обхода ошибки (откроется в новой вкладке)
     if (targetUrl) {
-        // Убеждаемся, что адрес содержит протокол, если нет — добавляем https
-        iframe.src = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+        const cleanUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+        iframe.src = cleanUrl;
+        bypassLink.href = cleanUrl;
     } else {
-        console.error("Параметр 'url' отсутствует в адресе.");
         document.getElementById('loader').innerText = "Ошибка: URL не указан";
+        return;
     }
 
-    // 3. Разбор дополнительных параметров через точку с запятой
+    // Если iframe успешно загрузился
+    iframe.addEventListener('load', () => {
+        isIframeLoaded = true;
+        container.classList.add('loaded');
+        errorNotice.classList.add('hidden'); // На всякий случай прячем ошибку
+    });
+
+    // Умный таймер ожидания загрузки (в обход ограничений браузера на ERR_CERT)
+    setTimeout(() => {
+        if (!isIframeLoaded) {
+            // Если за 4 секунды iframe не загрузился, скорее всего сработал ERR_CERT_AUTHORITY_INVALID
+            container.classList.add('loaded'); // убираем бесконечный лоадер
+            errorNotice.classList.remove('hidden'); // показываем кнопку помощи
+            console.warn("Подозрение на ошибку SSL-сертификата (нет ответа от фрейма).");
+        }
+    }, 4000); // 4 секунды ожидания
+
+    // Разбор параметров
     if (rawParameters) {
         const paramsArray = rawParameters.split(';');
-
         paramsArray.forEach(param => {
             const cleanParam = param.trim().toLowerCase();
-
             switch (cleanParam) {
                 case 'nocontrols':
                 case 'disableiframegui':
-                    // Полностью убираем панели управления iframev2
                     container.classList.add('hide-gui');
                     break;
-                    
                 case 'site':
-                    // Включаем режим отображения "Сайт/Приложение" (не видео)
                     container.classList.add('site-mode');
-                    console.log("Режим: Интерактивный сайт/игра");
                     break;
-                    
                 case 'free':
-                    // Применяем бесплатный статус
                     container.classList.add('free-mode');
                     if (badge) badge.innerText = "Бесплатно";
                     break;
@@ -53,8 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 4. Обработка флага view
     if (viewMode === 'true') {
-        document.title = `Просмотр: ${targetUrl || 'iframev2'}`;
+        document.title = `Просмотр: ${targetUrl}`;
     }
 });
