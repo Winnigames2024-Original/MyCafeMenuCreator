@@ -1,72 +1,92 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    let targetUrl = urlParams.get('url'); 
-    const viewMode = urlParams.get('view'); 
-    const rawParameters = urlParams.get('parameters'); 
+    const targetUrl = urlParams.get('url');
+    const viewMode = urlParams.get('view');
+    const rawParameters = urlParams.get('parameters');
 
     const container = document.getElementById('iframe-container');
-    const iframe = document.getElementById('target-iframe');
     const badge = document.getElementById('status-badge');
     const errorNotice = document.getElementById('error-notice');
     const bypassLink = document.getElementById('bypass-link');
+    const loader = document.getElementById('loader');
 
-    if (targetUrl) {
-        targetUrl = targetUrl.trim();
-        
-        // Формируем чистый корректный адрес
-        let cleanUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-        
-        // Настраиваем ссылку на кнопке на случай, если браузер заблокирует автоматическое всплывающее окно
-        if (bypassLink) bypassLink.href = cleanUrl;
-
-        // === ГЛАВНОЕ ИЗМЕНЕНИЕ: СРАЗУ В НОВУЮ ВКЛАДКУ ===
-        // Открываем целевой сайт в новой вкладке сразу при загрузке страницы iframev2
-        const newWindow = window.open(cleanUrl, '_blank');
-
-        // Если браузер пользователя заблокировал pop-up (всплывающее окно)
-        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-            console.warn("Автоматическое открытие заблокировано браузером. Показываем кнопку перехода.");
-            if (container) container.classList.add('loaded');
-            if (errorNotice) {
-                errorNotice.classList.remove('hidden');
-                // Меняем текст заглушки под нашу новую логику
-                errorNotice.querySelector('h3').innerText = "Переход на сайт";
-                errorNotice.querySelector('p').innerText = "Нажмите на кнопку ниже, чтобы открыть сайт в новой вкладке.";
-                if (bypassLink) bypassLink.innerText = "Открыть сайт";
-            }
-        } else {
-            // Если вкладка успешно открылась, мы можем оставить саму страницу iframev2 пустой или написать, что переход выполнен
-            document.getElementById('loader').innerText = "Перенаправление выполнено в новую вкладку...";
-            if (container) container.classList.add('loaded');
-        }
-    } else {
-        document.getElementById('loader').innerText = "Ошибка: URL не указан";
+    // Проверка обязательных элементов
+    if (!bypassLink) {
+        console.error('Элемент #bypass-link не найден — кнопка перехода не будет работать');
         return;
     }
 
-    // Разбор ваших стандартных параметров (site, free, nocontrols)
-    if (rawParameters) {
-        const paramsArray = rawParameters.split(';');
-        paramsArray.forEach(param => {
-            const cleanParam = param.trim().toLowerCase();
-            switch (cleanParam) {
-                case 'nocontrols':
-                case 'disableiframegui':
-                    if (container) container.classList.add('hide-gui');
-                    break;
-                case 'site':
-                    if (container) container.classList.add('site-mode');
-                    break;
-                case 'free':
-                    if (container) container.classList.add('free-mode');
-                    if (badge) badge.innerText = "Бесплатно";
-                    break;
+    if (targetUrl) {
+        let cleanUrl = targetUrl.trim();
+
+        // Добавляем https, если нет протокола
+        if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+            cleanUrl = 'https://' + cleanUrl;
+        }
+
+        // Базовая валидация URL (защита от javascript:, data:, file: и т. д.)
+        try {
+            const parsed = new URL(cleanUrl);
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+                throw new Error('Недопустимый протокол');
             }
-        });
+            // Опционально: можно добавить белый список доменов, если нужно
+        } catch (e) {
+            console.error('Некорректный URL', e);
+            showError('Ошибка: указан недопустимый адрес сайта.');
+            return;
+        }
+
+        // Сразу показываем кнопку перехода (без попытки window.open)
+        if (bypassLink) {
+            bypassLink.href = cleanUrl;
+            bypassLink.innerText = 'Открыть сайт';
+        }
+
+        if (container) {
+            container.classList.add('loaded');
+        }
+        if (loader) {
+            loader.innerText = 'Нажмите кнопку ниже, чтобы перейти на сайт.';
+        }
+
+        // Обработка параметров (nocontrols, site, free)
+        if (rawParameters) {
+            const paramsArray = rawParameters.split(';');
+            paramsArray.forEach(param => {
+                const cleanParam = param.trim().toLowerCase();
+                switch (cleanParam) {
+                    case 'nocontrols':
+                    case 'disableiframegui':
+                        if (container) container.classList.add('hide-gui');
+                        break;
+                    case 'site':
+                        if (container) container.classList.add('site-mode');
+                        break;
+                    case 'free':
+                        if (container) container.classList.add('free-mode');
+                        if (badge) badge.innerText = 'Бесплатно';
+                        break;
+                }
+            });
+        }
+
+        // Обновление заголовка
+        if (viewMode === 'true' && targetUrl) {
+            document.title = `Переход: ${targetUrl}`;
+        }
+    } else {
+        if (loader) loader.innerText = 'Ошибка: параметр url не указан';
+        showError('Не передан параметр url в адресной строке.');
     }
 
-    if (viewMode === 'true' && targetUrl) {
-        document.title = `Редирект: ${targetUrl}`;
+    function showError(message) {
+        if (errorNotice) {
+            errorNotice.classList.remove('hidden');
+            const h3 = errorNotice.querySelector('h3');
+            const p = errorNotice.querySelector('p');
+            if (h3) h3.innerText = 'Внимание';
+            if (p) p.innerText = message;
+        }
     }
 });
