@@ -8,16 +8,22 @@
 </head>
 <body>
 
-    <!-- Главный контейнер -->
     <div id="iframe-container" class="iframe-container">
-        
-        <!-- Лоадер/Заставка на время загрузки сайта -->
+        <!-- Лоадер -->
         <div id="loader" class="loader">Загрузка контента...</div>
 
-        <!-- Сам iframe для отображения сайта/приложения -->
+        <!-- Окно ошибки, если сертификат заблокирован -->
+        <div id="error-notice" class="error-notice hidden">
+            <h3>⚠️ Ошибка безопасности или блокировка</h3>
+            <p>Браузер заблокировал отображение сайта из-за проблем с SSL-сертификатом.</p>
+            <p>Чтобы исправить это, нажмите кнопку ниже, выберите <strong>"Дополнительно" → "Перейти на сайт (небезопасно)"</strong>, а затем вернитесь сюда или обновите страницу.</p>
+            <a id="bypass-link" href="#" target="_blank" class="error-btn">Разрешить доступ к сайту</a>
+        </div>
+
+        <!-- Сам iframe -->
         <iframe id="target-iframe" src="" frameborder="0" allowfullscreen allow="geolocation; microphone; camera; midi; encrypted-media;"></iframe>
         
-        <!-- Кастомный GUI-интерфейс (скроется при nocontrols или disableiframegui) -->
+        <!-- Кастомный GUI-интерфейс -->
         <div id="gui-controls" class="gui-controls">
             <button onclick="location.reload()">Обновить</button>
             <span id="status-badge" class="badge">Режим просмотра</span>
