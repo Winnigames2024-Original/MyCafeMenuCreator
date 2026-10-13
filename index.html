@@ -137,10 +137,23 @@
 
   <!-- Элемент уведомления -->
   <div id="toast" class="toast">Ссылка Открыта! / Link Opened!</div>
-  <div id="openPayDialogToast" class="payDialogToast">Ссылка Открыта! / Link Opened!</div>
+  <div id="openPayDialogToast" class="payDialogToast">Ожидайте открытия страницы. / Please wait for the page to open.</div>
 
   <script>
   function openPath(path) {
+     const toast = document.getElementById('toast');
+    
+      if (toast) {
+          // Сначала показываем уведомление
+          toast.classList.add('show');
+      }
+      
+      // Делаем задержку в 2 секунды перед переходом по ссылке
+      setTimeout(() => {
+          window.location.href = path;
+      }, 2000);
+  }
+    function openPay() {
       const paytoast = document.getElementById('openPayDialogToast');
     
       if (paytoast) {
@@ -151,19 +164,6 @@
       // Делаем задержку в 2 секунды перед переходом по ссылке
       setTimeout(() => {
            window.location.href = "https://winnigames2024-original.github.io/MyCafeMenuCreator/iframev2?url=dsdsd&parameters=nocontrols;disableiframegui;novideo;free&view=true";
-      }, 2000);
-  }
-    function openPay() {
-      const toast = document.getElementById('toast');
-    
-      if (toast) {
-          // Сначала показываем уведомление
-          toast.classList.add('show');
-      }
-      
-      // Делаем задержку в 2 секунды перед переходом по ссылке
-      setTimeout(() => {
-          window.location.href = path;
       }, 2000);
   }
   </script>
