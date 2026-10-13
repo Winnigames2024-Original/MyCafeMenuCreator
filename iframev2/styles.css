@@ -1,4 +1,4 @@
-/* Сброс базовых стилей */
+/* Базовые сбросы */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -8,8 +8,8 @@
 body, html {
     width: 100%;
     height: 100%;
-    background-color: #000; /* Черный фон, как у видеоплееров */
-    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
 }
 
@@ -23,55 +23,77 @@ body, html {
     align-items: center;
 }
 
-/* Сам фрейм заполняет всё пространство */
+/* Фрейм для сайта */
 #target-iframe {
     width: 100%;
     height: 100%;
     border: none;
+    display: block;
+    background: transparent;
 }
 
-/* Интерфейс управления поверх iframe */
+/* Индикатор загрузки */
+.loader {
+    position: absolute;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.loaded .loader {
+    opacity: 0;
+}
+
+/* Элементы управления (GUI) поверх фрейма */
 .gui-controls {
     position: absolute;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.85);
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 30px;
     display: flex;
     gap: 15px;
     align-items: center;
-    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+.gui-controls button {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
 }
 
 .badge {
     color: #fff;
     background: #007bff;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
     font-size: 12px;
+    font-weight: bold;
 }
 
-/* --- Модификаторы, управляемые через JS параметры --- */
+/* --- Стили-модификаторы на основе параметров --- */
 
-/* Скрытие графического интерфейса (disableiframegui или nocontrols) */
+/* Скрытие интерфейса управления (флаги nocontrols или disableiframegui) */
 .hide-gui .gui-controls {
     display: none !important;
 }
 
-/* Если включен режим novideo (например, только аудио или заглушка) */
-.no-video #target-iframe {
-    opacity: 0.1; /* Скрываем или приглушаем видео */
-}
-.no-video::after {
-    content: "Видео отключено владельцем";
-    position: absolute;
-    color: #fff;
-    font-size: 18px;
+/* Режим отображения полноценного сайта (флаг site) */
+.site-mode #target-iframe {
+    /* Настройки отображения именно для сайтов/игр, если понадобятся */
+    pointer-events: auto; 
 }
 
-/* Стиль для бесплатного режима (free) */
+/* Бесплатный режим (флаг free) */
 .free-mode .badge {
     background: #28a745;
 }
