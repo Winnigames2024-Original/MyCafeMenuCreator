@@ -13,7 +13,6 @@ body, html {
     overflow: hidden;
 }
 
-/* Контейнер на весь экран */
 .iframe-container {
     position: relative;
     width: 100%;
@@ -23,16 +22,13 @@ body, html {
     align-items: center;
 }
 
-/* Фрейм для сайта */
 #target-iframe {
     width: 100%;
     height: 100%;
     border: none;
     display: block;
-    background: transparent;
 }
 
-/* Индикатор загрузки */
 .loader {
     position: absolute;
     color: #fff;
@@ -40,12 +36,43 @@ body, html {
     font-weight: 500;
     pointer-events: none;
     transition: opacity 0.3s ease;
+    z-index: 5;
 }
 .loaded .loader {
     opacity: 0;
 }
 
-/* Элементы управления (GUI) поверх фрейма */
+/* Окно обработки ошибки сертификата */
+.error-notice {
+    position: absolute;
+    max-width: 450px;
+    background: #2d2d2d;
+    color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.error-notice h3 { color: #ff4d4d; }
+.error-notice p { font-size: 14px; color: #ccc; line-height: 1.4; }
+.hidden { display: none !important; }
+
+.error-btn {
+    display: inline-block;
+    background: #ff4d4d;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+.error-btn:hover { background: #e03d3d; }
+
 .gui-controls {
     position: absolute;
     bottom: 20px;
@@ -80,20 +107,5 @@ body, html {
     font-weight: bold;
 }
 
-/* --- Стили-модификаторы на основе параметров --- */
-
-/* Скрытие интерфейса управления (флаги nocontrols или disableiframegui) */
-.hide-gui .gui-controls {
-    display: none !important;
-}
-
-/* Режим отображения полноценного сайта (флаг site) */
-.site-mode #target-iframe {
-    /* Настройки отображения именно для сайтов/игр, если понадобятся */
-    pointer-events: auto; 
-}
-
-/* Бесплатный режим (флаг free) */
-.free-mode .badge {
-    background: #28a745;
-}
+.hide-gui .gui-controls { display: none !important; }
+.free-mode .badge { background: #28a745; }
