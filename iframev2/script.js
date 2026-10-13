@@ -11,50 +11,41 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorNotice = document.getElementById('error-notice');
     const bypassLink = document.getElementById('bypass-link');
 
-    let isIframeLoaded = false;
-
     if (targetUrl) {
         targetUrl = targetUrl.trim();
         
-        // Кнопка «Разрешить доступ» на всякий случай ведет на прямую ссылку
-        bypassLink.href = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-
-        // === РЕШЕНИЕ БЕЗ CLOUDFLARE ===
-        // Если сайт передается как http:// или просто без протокола, 
-        // мы пропускаем его через бесплатный публичный HTTPS-прокси corsproxy.io.
-        // Он берет контент вашего сайта, заворачивает в HTTPS и срезает заголовки блокировки iframe.
+        // Формируем чистый корректный адрес
+        let cleanUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
         
-        let cleanUrl = targetUrl;
-        if (!cleanUrl.startsWith('http')) {
-            cleanUrl = `https://${cleanUrl}`;
+        // Настраиваем ссылку на кнопке на случай, если браузер заблокирует автоматическое всплывающее окно
+        if (bypassLink) bypassLink.href = cleanUrl;
+
+        // === ГЛАВНОЕ ИЗМЕНЕНИЕ: СРАЗУ В НОВУЮ ВКЛАДКУ ===
+        // Открываем целевой сайт в новой вкладке сразу при загрузке страницы iframev2
+        const newWindow = window.open(cleanUrl, '_blank');
+
+        // Если браузер пользователя заблокировал pop-up (всплывающее окно)
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            console.warn("Автоматическое открытие заблокировано браузером. Показываем кнопку перехода.");
+            if (container) container.classList.add('loaded');
+            if (errorNotice) {
+                errorNotice.classList.remove('hidden');
+                // Меняем текст заглушки под нашу новую логику
+                errorNotice.querySelector('h3').innerText = "Переход на сайт";
+                errorNotice.querySelector('p').innerText = "Нажмите на кнопку ниже, чтобы открыть сайт в новой вкладке.";
+                if (bypassLink) bypassLink.innerText = "Открыть сайт";
+            }
+        } else {
+            // Если вкладка успешно открылась, мы можем оставить саму страницу iframev2 пустой или написать, что переход выполнен
+            document.getElementById('loader').innerText = "Перенаправление выполнено в новую вкладку...";
+            if (container) container.classList.add('loaded');
         }
-
-        // Подключаем прокси-обходчик
-        const wrappedUrl = `https://corsproxy.io{encodeURIComponent(cleanUrl)}`;
-        
-        console.log("Загрузка через HTTPS-прокси:", wrappedUrl);
-        iframe.src = wrappedUrl;
     } else {
         document.getElementById('loader').innerText = "Ошибка: URL не указан";
         return;
     }
 
-    // Если iframe успешно загрузился через прокси
-    iframe.addEventListener('load', () => {
-        isIframeLoaded = true;
-        container.classList.add('loaded');
-        errorNotice.classList.add('hidden'); 
-    });
-
-    // Запасной таймаут: если прокси не ответил за 4 секунды, покажем кнопку ручного перехода
-    setTimeout(() => {
-        if (!isIframeLoaded) {
-            container.classList.add('loaded');
-            errorNotice.classList.remove('hidden'); 
-        }
-    }, 4000);
-
-    // Разбор остальных ваших параметров (site, free, nocontrols)
+    // Разбор ваших стандартных параметров (site, free, nocontrols)
     if (rawParameters) {
         const paramsArray = rawParameters.split(';');
         paramsArray.forEach(param => {
@@ -62,20 +53,20 @@ document.addEventListener("DOMContentLoaded", () => {
             switch (cleanParam) {
                 case 'nocontrols':
                 case 'disableiframegui':
-                    container.classList.add('hide-gui');
+                    if (container) container.classList.add('hide-gui');
                     break;
                 case 'site':
-                    container.classList.add('site-mode');
+                    if (container) container.classList.add('site-mode');
                     break;
                 case 'free':
-                    container.classList.add('free-mode');
+                    if (container) container.classList.add('free-mode');
                     if (badge) badge.innerText = "Бесплатно";
                     break;
             }
         });
     }
 
-    if (viewMode === 'true') {
-        document.title = `Просмотр: ${targetUrl}`;
+    if (viewMode === 'true' && targetUrl) {
+        document.title = `Редирект: ${targetUrl}`;
     }
 });
