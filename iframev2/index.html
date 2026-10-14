@@ -2,29 +2,66 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewer</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; }
+        #wrapper { position: relative; width: 100%; height: 100vh; }
+        iframe { width: 100%; height: 100%; border: none; display: block; }
+        .fallback {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #fff; padding: 2rem; border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+            display: none; /* Скрыто по умолчанию */
+        }
+        .btn {
+            display: inline-block; margin-top: 1rem;
+            padding: 10px 20px; background: #007bff; color: #fff;
+            text-decoration: none; border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
 
-    <div id="iframe-container" class="iframe-container">
-        <!-- Лоадер -->
-        <div id="loader" class="loader">Загрузка...</div>
+<div id="wrapper">
+    <!-- Сюда скрипт подставит ссылку -->
+    <iframe id="targetFrame" src="about:blank"></iframe>
 
-        <!-- Панель ошибки (скрыта по умолчанию) -->
-        <div id="error-notice" class="error-notice hidden">
-            <h3>⚠️ Контент не отображается</h3>
-            <p id="error-message">Причина неизвестна.</p>
-            <!-- Кнопка перехода -->
-            <a id="bypass-link" href="#" class="error-btn" target="_blank" rel="noopener noreferrer">Открыть сайт в новой вкладке</a>
-        </div>
-
-        <!-- Сам iframe -->
-        <iframe id="target-iframe" src="" frameborder="0"></iframe>
+    <!-- Панель, которая появится, если iframe не загрузится -->
+    <div id="errorPanel" class="fallback">
+        <h3>Страница не отображается внутри</h3>
+        <p>Браузер заблокировал загрузку из соображений безопасности.</p>
+        <a id="openLink" href="#" class="btn" target="_blank" rel="noopener noreferrer">Открыть сайт отдельно</a>
     </div>
+</div>
 
-    <!-- Скрипт -->
-    <script src="script.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('url');
+    
+    const frame = document.getElementById('targetFrame');
+    const panel = document.getElementById('errorPanel');
+    const link = document.getElementById('openLink');
+
+    if (!url) {
+        frame.style.display = 'none';
+        panel.style.display = 'block';
+        panel.querySelector('p').innerText = 'Ошибка: не передан параметр ?url=';
+        return;
+    }
+
+    // Пытаемся загрузить ссылку как есть
+    frame.src = url;
+
+    // Если загрузка не удалась (Mixed Content, CORS, ошибка сети)
+    frame.onerror = () => {
+        frame.style.display = 'none'; // Скрываем пустой iframe
+        panel.style.display = 'block'; // Показываем панель
+        link.href = url; // Кнопка ведёт на ту же ссылку
+    };
+});
+</script>
+
 </body>
 </html>
