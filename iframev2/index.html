@@ -4,62 +4,92 @@
     <meta charset="UTF-8">
     <title>Viewer</title>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; }
-        #wrapper { position: relative; width: 100%; height: 100vh; }
+        body { margin: 0; padding: 0; background: #f4f4f4; font-family: Arial, sans-serif; }
+        #wrapper { position: relative; width: 100%; height: 100vh; overflow: hidden; }
+        
+        /* Стили для iframe */
         iframe { width: 100%; height: 100%; border: none; display: block; }
-        .fallback {
+
+        /* Панель ошибки (появляется только если нельзя показать iframe) */
+        .fallback-panel {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #fff; padding: 2rem; border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: white; padding: 40px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             text-align: center;
-            display: none; /* Скрыто по умолчанию */
+            max-width: 500px;
+            display: none; /* Скрыта по умолчанию */
         }
         .btn {
-            display: inline-block; margin-top: 1rem;
-            padding: 10px 20px; background: #007bff; color: #fff;
-            text-decoration: none; border-radius: 6px;
+            display: inline-block; padding: 12px 24px; background: #007bff; color: white;
+            text-decoration: none; border-radius: 6px; font-weight: bold;
         }
+        .btn:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
 <div id="wrapper">
-    <!-- Сюда скрипт подставит ссылку -->
+    <!-- Сюда будет грузиться сайт, если можно -->
     <iframe id="targetFrame" src="about:blank"></iframe>
 
-    <!-- Панель, которая появится, если iframe не загрузится -->
-    <div id="errorPanel" class="fallback">
-        <h3>Страница не отображается внутри</h3>
-        <p>Браузер заблокировал загрузку из соображений безопасности.</p>
-        <a id="openLink" href="#" class="btn" target="_blank" rel="noopener noreferrer">Открыть сайт отдельно</a>
+    <!-- Панель с кнопкой, если нельзя -->
+    <div id="errorPanel" class="fallback-panel">
+        <h3>Не удаётся отобразить сайт</h3>
+        <p id="errorText">Браузер блокирует загрузку.</p>
+        <a id="openLink" href="#" class="btn" target="_blank" rel="noopener noreferrer">Перейти на сайт</a>
     </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
-    const url = params.get('url');
+    const rawUrl = params.get('url');
     
     const frame = document.getElementById('targetFrame');
     const panel = document.getElementById('errorPanel');
+    const errorText = document.getElementById('errorText');
     const link = document.getElementById('openLink');
 
-    if (!url) {
+    // 1. Проверка: есть ли вообще ссылка
+    if (!rawUrl) {
         frame.style.display = 'none';
         panel.style.display = 'block';
-        panel.querySelector('p').innerText = 'Ошибка: не передан параметр ?url=';
+        errorText.innerText = 'Ошибка: параметр ?url= не указан.';
         return;
     }
 
-    // Пытаемся загрузить ссылку как есть
-    frame.src = url;
+    let finalUrl = rawUrl.trim();
 
-    // Если загрузка не удалась (Mixed Content, CORS, ошибка сети)
-    frame.onerror = () => {
-        frame.style.display = 'none'; // Скрываем пустой iframe
+    // 2. ГЛАВНАЯ ЛОГИКА: Если ссылка начинается с http:// (но не https),
+    // мы НЕ пытаемся грузить её в iframe, чтобы не получить ошибку Mixed Content.
+    // Сразу показываем кнопку.
+    if (finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+        console.log('HTTP ссылка обнаружена. Пропускаем iframe, показываем кнопку.');
+        frame.style.display = 'none'; // Скрываем iframe
         panel.style.display = 'block'; // Показываем панель
-        link.href = url; // Кнопка ведёт на ту же ссылку
-    };
+        
+        errorText.innerText = 'Этот сайт использует незащищённое соединение (HTTP). Браузер запрещает показывать такие сайты внутри других страниц.';
+        link.href = finalUrl;
+        return; // Выходим, дальше ничего не делаем
+    } 
+    // Если ссылка https или без протокола — пробуем грузить
+    else {
+        // Добавляем https, если протокола вообще нет (например, site.com)
+        if (!finalUrl.startsWith('http')) {
+            finalUrl = 'https://' + finalUrl;
+        }
+
+        // Пытаемся загрузить
+        frame.src = finalUrl;
+
+        // Если загрузка всё равно не удалась (например, сайт сам запрещает iframe)
+        frame.onerror = () => {
+            frame.style.display = 'none';
+            panel.style.display = 'block';
+            errorText.innerText = 'Сайт запрещает встраивание в другие страницы.';
+            link.href = finalUrl;
+        };
+    }
 });
 </script>
 
