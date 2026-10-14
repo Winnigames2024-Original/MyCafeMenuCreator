@@ -3,33 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iframev2 Viewer</title>
+    <title>Viewer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <div id="iframe-container" class="iframe-container">
         <!-- Лоадер -->
-        <div id="loader" class="loader">Загрузка контента...</div>
+        <div id="loader" class="loader">Загрузка...</div>
 
-        <!-- Окно ошибки, если сертификат заблокирован -->
+        <!-- Панель ошибки (скрыта по умолчанию) -->
         <div id="error-notice" class="error-notice hidden">
-            <h3>⚠️ Ошибка безопасности или блокировка</h3>
-            <p>Браузер заблокировал отображение сайта из-за проблем с SSL-сертификатом.</p>
-            <p>Чтобы исправить это, нажмите кнопку ниже, выберите <strong>"Дополнительно" → "Перейти на сайт (небезопасно)"</strong>, а затем вернитесь сюда или обновите страницу.</p>
-            <a id="bypass-link" href="#" target="_blank" class="error-btn">Разрешить доступ к сайту</a>
+            <h3>⚠️ Контент не отображается</h3>
+            <p id="error-message">Причина неизвестна.</p>
+            <!-- Кнопка перехода -->
+            <a id="bypass-link" href="#" class="error-btn" target="_blank" rel="noopener noreferrer">Открыть сайт в новой вкладке</a>
         </div>
 
         <!-- Сам iframe -->
-        <iframe id="target-iframe" src="" frameborder="0" allowfullscreen allow="geolocation; microphone; camera; midi; encrypted-media;"></iframe>
-        
-        <!-- Кастомный GUI-интерфейс -->
-        <div id="gui-controls" class="gui-controls">
-            <button onclick="location.reload()">Обновить</button>
-            <span id="status-badge" class="badge">Режим просмотра</span>
-        </div>
+        <iframe id="target-iframe" src="" frameborder="0"></iframe>
     </div>
 
+    <!-- Скрипт -->
     <script src="script.js"></script>
 </body>
 </html>
